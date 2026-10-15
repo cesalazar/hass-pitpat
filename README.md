@@ -59,28 +59,24 @@ Settings → Devices & services → PitPat Treadmill → Configure: maximum spee
 speed used by Start, and the Faster/Slower step. Saving reloads the integration
 (a moving belt is stopped first).
 
-## Dashboard example
+## Dashboard
 
-```yaml
-type: entities
-title: Treadmill
-entities:
-  - sensor.pitpat_treadmill_state
-  - sensor.pitpat_treadmill_speed
-  - number.pitpat_treadmill_speed_setting
-  - sensor.pitpat_treadmill_distance
-  - sensor.pitpat_treadmill_workout_time
-  - type: buttons
-    entities:
-      - button.pitpat_treadmill_start
-      - button.pitpat_treadmill_pause
-      - button.pitpat_treadmill_stop
-      - button.pitpat_treadmill_slower
-      - button.pitpat_treadmill_faster
-```
+`dashboard.yaml` in this repository is a ready-made card: speedometer, state, time,
+distance, calories, speed slider, Slower / Start-or-Pause / Faster buttons and a big
+red Stop. In Home Assistant: open a dashboard, pencil icon (edit), Add card,
+Manual, paste the file, Save. It uses built-in cards only and the entity ids
+`sensor.pitpat_treadmill_*`, `number.pitpat_treadmill_speed_setting` and
+`button.pitpat_treadmill_*`.
 
 ## Troubleshooting
 
+- *Connection keeps dropping (the treadmill beeps on every connect and disconnect):*
+  look at the diagnostic sensor "Connection drops": its attributes show the last
+  reason. Bluetooth range is the usual cause. The Raspberry Pi's built-in Bluetooth
+  is weak, shares its antenna with Wi-Fi and is shielded by most cases. Fixes, best
+  first: an ESPHome Bluetooth proxy (an ESP32 board) placed next to the treadmill;
+  a USB Bluetooth adapter on a short extension cable; moving the Pi closer; Ethernet
+  instead of Wi-Fi on the Pi.
 - *Not discovered / unavailable:* treadmill on, close to the Pi or Bluetooth proxy,
   phone app closed (and the app's Bluetooth connection off).
 - *Debug log:* add to `configuration.yaml` (File editor add-on) and restart:

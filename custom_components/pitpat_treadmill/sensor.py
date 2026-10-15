@@ -23,6 +23,7 @@ from .entity import PitPatEntity
 @dataclass(frozen=True, kw_only=True)
 class PitPatSensorDescription(SensorEntityDescription):
     value_fn: Callable[[PitPatDevice], Any]
+    always_available: bool = False
 
 
 def _st(attr: str, scale: float | None = None):
@@ -66,6 +67,10 @@ SENSORS: tuple[PitPatSensorDescription, ...] = (
         key="error", entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=_st("error_code")),
     PitPatSensorDescription(
+        key="connection_drops", entity_category=EntityCategory.DIAGNOSTIC,
+        state_class=SensorStateClass.TOTAL_INCREASING, always_available=True,
+        icon="mdi:bluetooth-off", value_fn=lambda d: d.drops),
+    PitPatSensorDescription(
         key="incline", entity_registry_enabled_default=False, value_fn=_st("incline")),
     PitPatSensorDescription(
         key="steps", state_class=SensorStateClass.TOTAL_INCREASING,
@@ -92,3 +97,17 @@ class PitPatSensor(PitPatEntity, SensorEntity):
     @property
     def native_value(self) -> Any:
         return self.entity_description.value_fn(self.device)
+
+    @property
+    def available(self) -> bool:
+        return True if self.entity_description.always_available else self.device.connected
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        if self.entity_description.key != "connection_drops":
+            return None
+        return {
+            "last_drop_reason": self.device.last_drop_reason,
+            "last_drop": self.device.last_drop_at,
+            "failed_connect_attempts": self.device.connect_failures,
+        }

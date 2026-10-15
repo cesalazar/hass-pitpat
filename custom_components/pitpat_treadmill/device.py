@@ -21,6 +21,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.event import async_track_time_interval
+from homeassistant.util import dt as dt_util
 
 from .const import (
     COMMAND_GAP,
@@ -88,6 +89,10 @@ class PitPatDevice:
         self._tasks: set[asyncio.Task] = set()
         self._last_snapshot: tuple | None = None
         self._last_notify = 0.0
+        self.drops = 0                      # unexpected disconnects since Home Assistant started
+        self.connect_failures = 0
+        self.last_drop_reason: str | None = None
+        self.last_drop_at: datetime | None = None
 
     # ----------------------------------------------------------- listeners
     @callback
@@ -162,9 +167,16 @@ class PitPatDevice:
             self._schedule_connect()
 
     @callback
+    def _note_drop(self, reason: str) -> None:
+        self.drops += 1
+        self.last_drop_reason = reason
+        self.last_drop_at = dt_util.utcnow()
+        _LOGGER.warning("Treadmill connection dropped: %s (drop #%s)", reason, self.drops)
+
+    @callback
     def _tick(self, _now: datetime) -> None:
         if self.connected and time.monotonic() - self._last_rx > WATCHDOG_SECONDS:
-            _LOGGER.warning("No data from the treadmill for %ss, reconnecting", WATCHDOG_SECONDS)
+            self._note_drop(f"no data for {WATCHDOG_SECONDS}s (we disconnected)")
             self._spawn(self._disconnect())
         elif self.enabled and not self.connected:
             self._schedule_connect()
@@ -207,7 +219,9 @@ class PitPatDevice:
                     ),
                 )
             except IO_ERRORS as err:
+                self.connect_failures += 1
                 _LOGGER.debug("Could not connect to %s: %s", self.address, err)
+                self._notify()
                 return
             uuids = {s.uuid.lower() for s in client.services}
             if NEW_SERVICE in uuids:
@@ -235,7 +249,7 @@ class PitPatDevice:
     @callback
     def _on_disconnect(self, client: BleakClient) -> None:
         if client is self._client:
-            _LOGGER.info("Treadmill %s disconnected", self.address)
+            self._note_drop("link lost (treadmill or Bluetooth adapter ended the connection)")
             self._client = None
             self._notify()
 

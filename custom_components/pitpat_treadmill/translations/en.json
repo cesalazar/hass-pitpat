@@ -41,6 +41,7 @@
       "workout_time": {"name": "Workout time"},
       "calories": {"name": "Calories"},
       "error": {"name": "Error code"},
+      "connection_drops": {"name": "Connection drops"},
       "incline": {"name": "Incline"},
       "steps": {"name": "Steps"},
       "heart_rate": {"name": "Heart rate"}

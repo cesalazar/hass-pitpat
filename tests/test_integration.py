@@ -206,6 +206,8 @@ async def test_drop_then_reconnect_on_advertisement(hass, radio):
     c1.drop()
     await hass.async_block_till_done()
     assert st(hass, "sensor.state").state == "unavailable"
+    drops = hass.states.get("sensor.pitpat_treadmill_connection_drops")
+    assert drops.state == "1" and "link lost" in drops.attributes["last_drop_reason"]
     radio.advertise()
     await hass.async_block_till_done()
     assert len(radio.clients) == 2
@@ -229,10 +231,12 @@ async def test_watchdog_reconnects_silent_link(hass, radio):
     c1 = radio.client
     c1.emit(status_frame("stopped"))
     await hass.async_block_till_done()
-    radio.now += 11                                    # no data for 11 s
+    radio.now += 21                                    # no data for 21 s
     async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=3))
     await hass.async_block_till_done()
     assert c1.disconnect_calls == 1
+    drops = hass.states.get("sensor.pitpat_treadmill_connection_drops")
+    assert drops.state == "1" and "no data" in drops.attributes["last_drop_reason"]
     async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=6))
     await hass.async_block_till_done()
     assert len(radio.clients) == 2                     # reconnected by the periodic check

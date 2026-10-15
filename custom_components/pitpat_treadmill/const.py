@@ -14,6 +14,6 @@ DEFAULT_STEP = 0.5
 MIN_SPEED = 0.5
 
 NAME = "PitPat treadmill"
-WATCHDOG_SECONDS = 10      # no data for this long = dead link, reconnect
+WATCHDOG_SECONDS = 20      # no data for this long = dead link, reconnect
 RETRY_SECONDS = 15         # minimum time between connection attempts
 COMMAND_GAP = 0.3          # minimum seconds between commands sent to the pad
