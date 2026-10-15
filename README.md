@@ -61,12 +61,26 @@ speed used by Start, and the Faster/Slower step. Saving reloads the integration
 
 ## Dashboard
 
-`dashboard.yaml` in this repository is a ready-made card: speedometer, state, time,
-distance, calories, speed slider, Slower / Start-or-Pause / Faster buttons and a big
-red Stop. In Home Assistant: open a dashboard, pencil icon (edit), Add card,
-Manual, paste the file, Save. It uses built-in cards only and the entity ids
-`sensor.pitpat_treadmill_*`, `number.pitpat_treadmill_speed_setting` and
-`button.pitpat_treadmill_*`.
+The integration ships its own dashboard card and loads it automatically; there is
+nothing to install or paste. After installing or updating, restart Home Assistant and
+refresh the browser (Ctrl+F5). Then open a dashboard, pencil icon (edit), Add card,
+and pick **PitPat Treadmill**. It shows a speedometer, state and time, distance,
+calories and target speed, the speed slider, Slower / Start-or-Pause / Faster / Stop
+buttons and a one-hour speed graph.
+
+Or add it in YAML:
+
+```yaml
+type: custom:pitpat-treadmill-card
+```
+
+If you renamed the device, so that entity ids no longer start with
+`pitpat_treadmill_`, set the prefix:
+
+```yaml
+type: custom:pitpat-treadmill-card
+prefix: my_treadmill
+```
 
 ## Troubleshooting
 

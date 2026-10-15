@@ -300,3 +300,14 @@ async def test_options_limit_speed_and_reload(hass, radio):
     for _ in range(5):
         await press(hass, "faster")
     assert c.commands[-1] == (4, 4000)                 # never above the configured maximum
+
+
+# ---------------------------------------------------------------- dashboard card
+async def test_card_is_served_and_loaded(hass, radio, frontend):
+    from pathlib import Path
+    await setup_entry(hass)
+    (cfgs,), _ = hass.http.async_register_static_paths.call_args
+    assert cfgs[0].url_path == "/pitpat_treadmill/pitpat-treadmill-card.js"
+    assert Path(cfgs[0].path).is_file()
+    (_, url), _ = frontend.call_args
+    assert url.startswith("/pitpat_treadmill/pitpat-treadmill-card.js?v=")
