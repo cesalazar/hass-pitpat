@@ -97,12 +97,12 @@ cards:
         name: Faster
         icon: mdi:plus
         vertical: true
-  - type: tile
-    entity: button.pitpat_treadmill_stop
-    name: Stop
-    icon: mdi:stop
-    color: red
-    vertical: false
+      - type: tile
+        entity: button.pitpat_treadmill_stop
+        name: Stop
+        icon: mdi:stop
+        color: red
+        vertical: true
 
   # Recent speed
   - type: history-graph
