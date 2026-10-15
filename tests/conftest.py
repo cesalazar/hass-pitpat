@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import asyncio
-from unittest.mock import patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from bleak.backends.device import BLEDevice
 import pytest
@@ -103,6 +103,15 @@ class Radio:
     def advertise(self):
         for cb in list(self.adv_cbs):
             cb(None, None)
+
+
+@pytest.fixture(autouse=True)
+def frontend(hass):
+    """The card is served through http/frontend; fake both (the real ones are not under test)."""
+    hass.config.components.update({"http", "frontend"})
+    hass.http = MagicMock(async_register_static_paths=AsyncMock())
+    with patch("homeassistant.components.frontend.add_extra_js_url") as add_js:
+        yield add_js
 
 
 @pytest.fixture
