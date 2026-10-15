@@ -37,6 +37,7 @@
             {
               type: "vertical-stack",
               cards: [
+                { type: "tile", entity: e("switch", "bluetooth_connection"), name: "Connection", icon: "mdi:bluetooth", vertical: false },
                 { type: "tile", entity: state, name: "State", icon: "mdi:run", vertical: false },
                 { type: "tile", entity: e("sensor", "workout_time"), name: "Time", vertical: false },
               ],
@@ -111,21 +112,65 @@
 
     set hass(hass) {
       this._hass = hass;
-      if (this._card) this._card.hass = hass;
+      if (!this._card) return;
+      try {
+        this._card.hass = hass;
+      } catch (err) {
+        // A transient failure in a child card must not take the whole card down.
+        console.warn("pitpat-treadmill-card: hass update failed, rebuilding", err);
+        this._scheduleRetry();
+      }
+    }
+
+    connectedCallback() {
+      // Rebuild after Home Assistant reloads the dashboard (edit mode, resources).
+      this._onRebuild = () => this._render();
+      window.addEventListener("ll-rebuild", this._onRebuild);
+      if (this._config && !this._card) this._render();
+    }
+
+    disconnectedCallback() {
+      window.removeEventListener("ll-rebuild", this._onRebuild);
+      clearTimeout(this._retry);
     }
 
     getCardSize() {
       return 10;
     }
 
+    _scheduleRetry() {
+      clearTimeout(this._retry);
+      this._retry = setTimeout(() => this._render(), 1000);
+    }
+
+    async _helpers() {
+      // The card script can load before the dashboard has defined its helpers.
+      for (let i = 0; i < 100; i++) {
+        if (window.loadCardHelpers) return window.loadCardHelpers();
+        await new Promise((r) => setTimeout(r, 100));
+      }
+      throw new Error("Home Assistant card helpers are not available");
+    }
+
     async _render() {
       const token = (this._token = Symbol());
-      const helpers = await window.loadCardHelpers();
-      if (token !== this._token) return; // a newer setConfig superseded this one
-      const card = helpers.createCardElement(buildConfig(this._config.prefix));
-      if (this._hass) card.hass = this._hass;
-      this._card = card;
-      this.replaceChildren(card);
+      try {
+        const helpers = await this._helpers();
+        if (token !== this._token) return; // a newer setConfig superseded this one
+        const card = helpers.createCardElement(buildConfig(this._config.prefix));
+        if (this._hass) card.hass = this._hass;
+        this._card = card;
+        this.replaceChildren(card);
+      } catch (err) {
+        if (token !== this._token) return;
+        console.error("pitpat-treadmill-card: render failed", err);
+        this._card = null;
+        const msg = document.createElement("ha-alert");
+        msg.setAttribute("alert-type", "error");
+        msg.textContent = `PitPat card failed to render: ${err && err.message ? err.message : err}`;
+        this.replaceChildren(msg);
+        this._scheduleRetry();
+      }
     }
   }
 
