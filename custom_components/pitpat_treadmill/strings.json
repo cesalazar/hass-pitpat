@@ -1,0 +1,58 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "description": "Turn the treadmill on and pick it from the list.",
+        "data": {"address": "Treadmill"}
+      },
+      "bluetooth_confirm": {
+        "description": "Add {name}? Close the PitPat app on your phone first: the treadmill accepts only one Bluetooth connection."
+      }
+    },
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]",
+      "already_in_progress": "[%key:common::config_flow::abort::already_in_progress%]",
+      "no_devices_found": "No PitPat treadmill found. Turn it on, stay in Bluetooth range, and close the PitPat app on your phone."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Treadmill limits",
+        "description": "Changing these reloads the integration; a moving belt is stopped first.",
+        "data": {
+          "max_speed": "Maximum speed",
+          "start_speed": "Speed used by Start",
+          "step": "Faster / Slower step"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "state": {
+        "name": "State",
+        "state": {"stopped": "Stopped", "countdown": "Countdown", "running": "Running", "paused": "Paused"}
+      },
+      "speed": {"name": "Speed"},
+      "target_speed": {"name": "Target speed"},
+      "distance": {"name": "Distance"},
+      "workout_time": {"name": "Workout time"},
+      "calories": {"name": "Calories"},
+      "error": {"name": "Error code"},
+      "incline": {"name": "Incline"},
+      "steps": {"name": "Steps"},
+      "heart_rate": {"name": "Heart rate"}
+    },
+    "number": {"speed_setting": {"name": "Speed setting"}},
+    "button": {
+      "start": {"name": "Start"},
+      "stop": {"name": "Stop"},
+      "pause": {"name": "Pause"},
+      "faster": {"name": "Faster"},
+      "slower": {"name": "Slower"}
+    },
+    "switch": {"connection": {"name": "Bluetooth connection"}}
+  }
+}
