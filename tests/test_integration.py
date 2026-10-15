@@ -231,7 +231,7 @@ async def test_watchdog_reconnects_silent_link(hass, radio):
     c1 = radio.client
     c1.emit(status_frame("stopped"))
     await hass.async_block_till_done()
-    radio.now += 21                                    # no data for 21 s
+    radio.now += 31                                    # no data for 31 s
     async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=3))
     await hass.async_block_till_done()
     assert c1.disconnect_calls == 1
